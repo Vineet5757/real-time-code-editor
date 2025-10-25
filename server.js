@@ -6,7 +6,16 @@ const { Server } = require('socket.io');
 const ACTIONS = require('./src/Actions');
 
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+        methods: ["GET", "POST"],
+        credentials: true
+    },
+    pingTimeout: 60000,
+    pingInterval: 25000,
+    transports: ['websocket', 'polling']
+});
 
 app.use(express.static('build'));
 app.use((req, res, next) => {
@@ -28,6 +37,14 @@ function getAllConnectedClients(roomId) {
 
 io.on('connection', (socket) => {
     console.log('socket connected', socket.id);
+
+    socket.on('error', (error) => {
+        console.error('Socket error:', error);
+    });
+
+    socket.on('connect_error', (error) => {
+        console.error('Connection error:', error);
+    });
 
     socket.on(ACTIONS.JOIN, ({ roomId, username }) => {
         userSocketMap[socket.id] = username;
@@ -63,5 +80,5 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
