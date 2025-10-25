@@ -5,16 +5,29 @@ const path = require('path');
 const { Server } = require('socket.io');
 const ACTIONS = require('./src/Actions');
 
+// Add CORS headers
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    next();
+});
+
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+        origin: ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001"],
         methods: ["GET", "POST"],
-        credentials: true
+        credentials: true,
+        allowedHeaders: ["my-custom-header"],
     },
     pingTimeout: 60000,
     pingInterval: 25000,
-    transports: ['websocket', 'polling']
+    transports: ['polling', 'websocket'],
+    allowEIO3: true,
+    maxHttpBufferSize: 1e8,
+    path: '/socket.io/'
 });
 
 app.use(express.static('build'));
